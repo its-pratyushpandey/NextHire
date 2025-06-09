@@ -1,0 +1,27 @@
+{
+  "heroSection": {
+    "badge": "Find Your Dream Job",
+    "mainHeading": "Discover the",
+    "perfectRole": "Perfect Role",
+    "buildFuture": "to Build Your Future",
+    "subtitle": "Join the leading platform for job seekers and employers.",
+    "searchJobs": "Search Jobs"
+  },
+  "helpCenter": {
+    "title": "Help Center",
+    "description": "Find answers to your questions and get support."
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Access your account",
+    "email": "Email Address",
+    "password": "Password",
+    "role": "Select Your Role",
+    "student": "Student",
+    "recruiter": "Recruiter",
+    "signingIn": "Signing In...",
+    "signIn": "Sign In",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create one now"
+  }
+} 

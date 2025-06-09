@@ -1,0 +1,27 @@
+{
+  "heroSection": {
+    "badge": "Encuentra Tu Trabajo Soñado",
+    "mainHeading": "Descubre el",
+    "perfectRole": "Rol Perfecto",
+    "buildFuture": "para Construir Tu Futuro",
+    "subtitle": "Únete a la plataforma líder para buscadores de empleo y empleadores.",
+    "searchJobs": "Buscar Empleos"
+  },
+  "helpCenter": {
+    "title": "Centro de Ayuda",
+    "description": "Encuentra respuestas a tus preguntas y obtén soporte."
+  },
+  "login": {
+    "title": "Iniciar Sesión",
+    "subtitle": "Accede a tu cuenta",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "role": "Selecciona Tu Rol",
+    "student": "Estudiante",
+    "recruiter": "Reclutador",
+    "signingIn": "Iniciando Sesión...",
+    "signIn": "Iniciar Sesión",
+    "noAccount": "¿No tienes una cuenta?",
+    "createAccount": "Crea una ahora"
+  }
+} 

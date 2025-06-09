@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: #f8fafc;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #6366f1;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Subscription Cancelled</h1>
+  </div>
+  
+  <div class="content">
+    <p>Dear {{name}},</p>
+    
+    <p>We're sorry to see you go! Your premium subscription has been successfully cancelled.</p>
+    
+    <p>Here's what happens next:</p>
+    <ul>
+      <li>Your premium features will remain active until the end of your current billing period</li>
+      <li>You'll continue to have access to all premium features until then</li>
+      <li>After that, your account will revert to the free plan</li>
+    </ul>
+    
+    <p>We value your feedback! If you'd like to share why you cancelled or if there's anything we could have done better, please let us know.</p>
+    
+    <p>If you change your mind, you can reactivate your premium subscription at any time.</p>
+    
+    <a href="{{dashboardUrl}}" class="button">Go to Dashboard</a>
+  </div>
+  
+  <div class="footer">
+    <p>If you have any questions, please don't hesitate to contact our support team.</p>
+    <p>&copy; 2024 Job Portal. All rights reserved.</p>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,1 @@
+{"version":3,"file":"CalendarWeek.js","sourceRoot":"","sources":["../../../src/classes/CalendarWeek.ts"],"names":[],"mappings":"AAEA,4CAA4C;AAC5C,MAAM,OAAO,YAAY;IACvB,YAAY,UAAkB,EAAE,IAAmB;QACjD,IAAI,CAAC,IAAI,GAAG,IAAI,CAAC;QACjB,IAAI,CAAC,UAAU,GAAG,UAAU,CAAC;IAC/B,CAAC;CAKF"}

@@ -1,0 +1,1073 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+function removeItem(arr, item) {
+    const index = arr.indexOf(item);
+    if (index > -1)
+        arr.splice(index, 1);
+}
+
+let invariant = () => { };
+if (process.env.NODE_ENV !== "production") {
+    invariant = (check, message) => {
+        if (!check) {
+            throw new Error(message);
+        }
+    };
+}
+
+/*#__NO_SIDE_EFFECTS__*/
+function memo(callback) {
+    let result;
+    return () => {
+        if (result === undefined)
+            result = callback();
+        return result;
+    };
+}
+
+/*#__NO_SIDE_EFFECTS__*/
+const noop = (any) => any;
+
+/*
+  Progress within given range
+
+  Given a lower limit and an upper limit, we return the progress
+  (expressed as a number 0-1) represented by the given value, and
+  limit that progress to within 0-1.
+
+  @param [number]: Lower limit
+  @param [number]: Upper limit
+  @param [number]: Value to find progress within given range
+  @return [number]: Progress of value within range as expressed 0-1
+*/
+/*#__NO_SIDE_EFFECTS__*/
+const progress = (from, to, value) => {
+    const toFromDifference = to - from;
+    return toFromDifference === 0 ? 1 : (value - from) / toFromDifference;
+};
+
+/**
+ * Converts seconds to milliseconds
+ *
+ * @param seconds - Time in seconds.
+ * @return milliseconds - Converted time in milliseconds.
+ */
+/*#__NO_SIDE_EFFECTS__*/
+const secondsToMilliseconds = (seconds) => seconds * 1000;
+/*#__NO_SIDE_EFFECTS__*/
+const millisecondsToSeconds = (milliseconds) => milliseconds / 1000;
+
+const wrap = (min, max, v) => {
+    const rangeSize = max - min;
+    return ((((v - min) % rangeSize) + rangeSize) % rangeSize) + min;
+};
+
+const isEasingArray = (ease) => {
+    return Array.isArray(ease) && typeof ease[0] !== "number";
+};
+
+function getEasingForSegment(easing, i) {
+    return isEasingArray(easing) ? easing[wrap(0, easing.length, i)] : easing;
+}
+
+const isBezierDefinition = (easing) => Array.isArray(easing) && typeof easing[0] === "number";
+
+/*
+  Value in range from progress
+
+  Given a lower limit and an upper limit, we return the value within
+  that range as expressed by progress (usually a number from 0 to 1)
+
+  So progress = 0.5 would change
+
+  from -------- to
+
+  to
+
+  from ---- to
+
+  E.g. from = 10, to = 20, progress = 0.5 => 15
+
+  @param [number]: Lower limit of range
+  @param [number]: Upper limit of range
+  @param [number]: The progress between lower and upper limits expressed 0-1
+  @return [number]: Value as calculated from progress within range (not limited within range)
+*/
+const mixNumber = (from, to, progress) => {
+    return from + (to - from) * progress;
+};
+
+const generateLinearEasing = (easing, duration, // as milliseconds
+resolution = 10 // as milliseconds
+) => {
+    let points = "";
+    const numPoints = Math.max(Math.round(duration / resolution), 2);
+    for (let i = 0; i < numPoints; i++) {
+        points += easing(i / (numPoints - 1)) + ", ";
+    }
+    return `linear(${points.substring(0, points.length - 2)})`;
+};
+
+/**
+ * Implement a practical max duration for keyframe generation
+ * to prevent infinite loops
+ */
+const maxGeneratorDuration = 20000;
+function calcGeneratorDuration(generator) {
+    let duration = 0;
+    const timeStep = 50;
+    let state = generator.next(duration);
+    while (!state.done && duration < maxGeneratorDuration) {
+        duration += timeStep;
+        state = generator.next(duration);
+    }
+    return duration >= maxGeneratorDuration ? Infinity : duration;
+}
+
+/**
+ * Create a progress => progress easing function from a generator.
+ */
+function createGeneratorEasing(options, scale = 100, createGenerator) {
+    const generator = createGenerator({ ...options, keyframes: [0, scale] });
+    const duration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
+    return {
+        type: "keyframes",
+        ease: (progress) => {
+            return generator.next(duration * progress).value / scale;
+        },
+        duration: millisecondsToSeconds(duration),
+    };
+}
+
+function fillOffset(offset, remaining) {
+    const min = offset[offset.length - 1];
+    for (let i = 1; i <= remaining; i++) {
+        const offsetProgress = progress(0, remaining, i);
+        offset.push(mixNumber(min, 1, offsetProgress));
+    }
+}
+
+function defaultOffset(arr) {
+    const offset = [0];
+    fillOffset(offset, arr.length - 1);
+    return offset;
+}
+
+const isNotNull = (value) => value !== null;
+function getFinalKeyframe(keyframes, { repeat, repeatType = "loop" }, finalKeyframe, speed = 1) {
+    const resolvedKeyframes = keyframes.filter(isNotNull);
+    const useFirstKeyframe = speed < 0 || (repeat && repeatType !== "loop" && repeat % 2 === 1);
+    const index = useFirstKeyframe ? 0 : resolvedKeyframes.length - 1;
+    return !index || finalKeyframe === undefined
+        ? resolvedKeyframes[index]
+        : finalKeyframe;
+}
+
+class WithPromise {
+    constructor() {
+        this.count = 0;
+        this.updateFinished();
+    }
+    get finished() {
+        return this._finished;
+    }
+    updateFinished() {
+        this.count++;
+        this._finished = new Promise((resolve) => {
+            this.resolve = resolve;
+        });
+    }
+    notifyFinished() {
+        this.resolve();
+    }
+    /**
+     * Allows the animation to be awaited.
+     *
+     * @deprecated Use `finished` instead.
+     */
+    then(onResolve, onReject) {
+        return this.finished.then(onResolve, onReject);
+    }
+}
+
+function fillWildcards(keyframes) {
+    for (let i = 1; i < keyframes.length; i++) {
+        keyframes[i] ?? (keyframes[i] = keyframes[i - 1]);
+    }
+}
+
+const isCSSVar = (name) => name.startsWith("--");
+
+function setStyle(element, name, value) {
+    isCSSVar(name)
+        ? element.style.setProperty(name, value)
+        : (element.style[name] = value);
+}
+
+const supportsScrollTimeline = /* @__PURE__ */ memo(() => window.ScrollTimeline !== undefined);
+
+/**
+ * Add the ability for test suites to manually set support flags
+ * to better test more environments.
+ */
+const supportsFlags = {};
+
+function memoSupports(callback, supportsFlag) {
+    const memoized = memo(callback);
+    return () => supportsFlags[supportsFlag] ?? memoized();
+}
+
+const supportsLinearEasing = /*@__PURE__*/ memoSupports(() => {
+    try {
+        document
+            .createElement("div")
+            .animate({ opacity: 0 }, { easing: "linear(0, 1)" });
+    }
+    catch (e) {
+        return false;
+    }
+    return true;
+}, "linearEasing");
+
+const cubicBezierAsString = ([a, b, c, d]) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
+
+const supportedWaapiEasing = {
+    linear: "linear",
+    ease: "ease",
+    easeIn: "ease-in",
+    easeOut: "ease-out",
+    easeInOut: "ease-in-out",
+    circIn: /*@__PURE__*/ cubicBezierAsString([0, 0.65, 0.55, 1]),
+    circOut: /*@__PURE__*/ cubicBezierAsString([0.55, 0, 1, 0.45]),
+    backIn: /*@__PURE__*/ cubicBezierAsString([0.31, 0.01, 0.66, -0.59]),
+    backOut: /*@__PURE__*/ cubicBezierAsString([0.33, 1.53, 0.69, 0.99]),
+};
+
+function mapEasingToNativeEasing(easing, duration) {
+    if (!easing) {
+        return undefined;
+    }
+    else if (typeof easing === "function") {
+        return supportsLinearEasing()
+            ? generateLinearEasing(easing, duration)
+            : "ease-out";
+    }
+    else if (isBezierDefinition(easing)) {
+        return cubicBezierAsString(easing);
+    }
+    else if (Array.isArray(easing)) {
+        return easing.map((segmentEasing) => mapEasingToNativeEasing(segmentEasing, duration) ||
+            supportedWaapiEasing.easeOut);
+    }
+    else {
+        return supportedWaapiEasing[easing];
+    }
+}
+
+function startWaapiAnimation(element, valueName, keyframes, { delay = 0, duration = 300, repeat = 0, repeatType = "loop", ease = "easeOut", times, } = {}, pseudoElement = undefined) {
+    const keyframeOptions = {
+        [valueName]: keyframes,
+    };
+    if (times)
+        keyframeOptions.offset = times;
+    const easing = mapEasingToNativeEasing(ease, duration);
+    /**
+     * If this is an easing array, apply to keyframes, not animation as a whole
+     */
+    if (Array.isArray(easing))
+        keyframeOptions.easing = easing;
+    const options = {
+        delay,
+        duration,
+        easing: !Array.isArray(easing) ? easing : "linear",
+        fill: "both",
+        iterations: repeat + 1,
+        direction: repeatType === "reverse" ? "alternate" : "normal",
+    };
+    if (pseudoElement)
+        options.pseudoElement = pseudoElement;
+    const animation = element.animate(keyframeOptions, options);
+    return animation;
+}
+
+function isGenerator(type) {
+    return typeof type === "function" && "applyToOptions" in type;
+}
+
+function applyGeneratorOptions({ type, ...options }) {
+    if (isGenerator(type) && supportsLinearEasing()) {
+        return type.applyToOptions(options);
+    }
+    else {
+        options.duration ?? (options.duration = 300);
+        options.ease ?? (options.ease = "easeOut");
+    }
+    return options;
+}
+
+/**
+ * NativeAnimation implements AnimationPlaybackControls for the browser's Web Animations API.
+ */
+class NativeAnimation extends WithPromise {
+    constructor(options) {
+        super();
+        this.finishedTime = null;
+        this.isStopped = false;
+        if (!options)
+            return;
+        const { element, name, keyframes, pseudoElement, allowFlatten = false, finalKeyframe, onComplete, } = options;
+        this.isPseudoElement = Boolean(pseudoElement);
+        this.allowFlatten = allowFlatten;
+        this.options = options;
+        invariant(typeof options.type !== "string", `animateMini doesn't support "type" as a string. Did you mean to import { spring } from "motion"?`);
+        const transition = applyGeneratorOptions(options);
+        this.animation = startWaapiAnimation(element, name, keyframes, transition, pseudoElement);
+        if (transition.autoplay === false) {
+            this.animation.pause();
+        }
+        this.animation.onfinish = () => {
+            this.finishedTime = this.time;
+            if (!pseudoElement) {
+                const keyframe = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
+                if (this.updateMotionValue) {
+                    this.updateMotionValue(keyframe);
+                }
+                else {
+                    /**
+                     * If we can, we want to commit the final style as set by the user,
+                     * rather than the computed keyframe value supplied by the animation.
+                     */
+                    setStyle(element, name, keyframe);
+                }
+                this.animation.cancel();
+            }
+            onComplete?.();
+            this.notifyFinished();
+        };
+        /**
+         * TODO: In a breaking change, we should replace this with `.notifyCancel()`
+         */
+        this.animation.oncancel = () => this.notifyFinished();
+    }
+    play() {
+        if (this.isStopped)
+            return;
+        this.animation.play();
+        if (this.state === "finished") {
+            this.updateFinished();
+        }
+    }
+    pause() {
+        this.animation.pause();
+    }
+    complete() {
+        this.animation.finish?.();
+    }
+    cancel() {
+        try {
+            this.animation.cancel();
+        }
+        catch (e) { }
+    }
+    stop() {
+        if (this.isStopped)
+            return;
+        this.isStopped = true;
+        const { state } = this;
+        if (state === "idle" || state === "finished") {
+            return;
+        }
+        if (this.updateMotionValue) {
+            this.updateMotionValue();
+        }
+        else {
+            this.commitStyles();
+        }
+        if (!this.isPseudoElement)
+            this.cancel();
+    }
+    /**
+     * WAAPI doesn't natively have any interruption capabilities.
+     *
+     * In this method, we commit styles back to the DOM before cancelling
+     * the animation.
+     *
+     * This is designed to be overridden by NativeAnimationExtended, which
+     * will create a renderless JS animation and sample it twice to calculate
+     * its current value, "previous" value, and therefore allow
+     * Motion to also correctly calculate velocity for any subsequent animation
+     * while deferring the commit until the next animation frame.
+     */
+    commitStyles() {
+        if (!this.isPseudoElement) {
+            this.animation.commitStyles?.();
+        }
+    }
+    get duration() {
+        const duration = this.animation.effect?.getComputedTiming?.().duration || 0;
+        return millisecondsToSeconds(Number(duration));
+    }
+    get time() {
+        return millisecondsToSeconds(Number(this.animation.currentTime) || 0);
+    }
+    set time(newTime) {
+        this.finishedTime = null;
+        this.animation.currentTime = secondsToMilliseconds(newTime);
+    }
+    /**
+     * The playback speed of the animation.
+     * 1 = normal speed, 2 = double speed, 0.5 = half speed.
+     */
+    get speed() {
+        return this.animation.playbackRate;
+    }
+    set speed(newSpeed) {
+        // Allow backwards playback after finishing
+        if (newSpeed < 0)
+            this.finishedTime = null;
+        this.animation.playbackRate = newSpeed;
+    }
+    get state() {
+        return this.finishedTime !== null
+            ? "finished"
+            : this.animation.playState;
+    }
+    get startTime() {
+        return Number(this.animation.startTime);
+    }
+    set startTime(newStartTime) {
+        this.animation.startTime = newStartTime;
+    }
+    /**
+     * Attaches a timeline to the animation, for instance the `ScrollTimeline`.
+     */
+    attachTimeline({ timeline, observe }) {
+        if (this.allowFlatten) {
+            this.animation.effect?.updateTiming({ easing: "linear" });
+        }
+        this.animation.onfinish = null;
+        if (timeline && supportsScrollTimeline()) {
+            this.animation.timeline = timeline;
+            return noop;
+        }
+        else {
+            return observe(this);
+        }
+    }
+}
+
+class GroupAnimation {
+    constructor(animations) {
+        // Bound to accomadate common `return animation.stop` pattern
+        this.stop = () => this.runAll("stop");
+        this.animations = animations.filter(Boolean);
+    }
+    get finished() {
+        return Promise.all(this.animations.map((animation) => animation.finished));
+    }
+    /**
+     * TODO: Filter out cancelled or stopped animations before returning
+     */
+    getAll(propName) {
+        return this.animations[0][propName];
+    }
+    setAll(propName, newValue) {
+        for (let i = 0; i < this.animations.length; i++) {
+            this.animations[i][propName] = newValue;
+        }
+    }
+    attachTimeline(timeline) {
+        const subscriptions = this.animations.map((animation) => animation.attachTimeline(timeline));
+        return () => {
+            subscriptions.forEach((cancel, i) => {
+                cancel && cancel();
+                this.animations[i].stop();
+            });
+        };
+    }
+    get time() {
+        return this.getAll("time");
+    }
+    set time(time) {
+        this.setAll("time", time);
+    }
+    get speed() {
+        return this.getAll("speed");
+    }
+    set speed(speed) {
+        this.setAll("speed", speed);
+    }
+    get state() {
+        return this.getAll("state");
+    }
+    get startTime() {
+        return this.getAll("startTime");
+    }
+    get duration() {
+        let max = 0;
+        for (let i = 0; i < this.animations.length; i++) {
+            max = Math.max(max, this.animations[i].duration);
+        }
+        return max;
+    }
+    runAll(methodName) {
+        this.animations.forEach((controls) => controls[methodName]());
+    }
+    play() {
+        this.runAll("play");
+    }
+    pause() {
+        this.runAll("pause");
+    }
+    cancel() {
+        this.runAll("cancel");
+    }
+    complete() {
+        this.runAll("complete");
+    }
+}
+
+class GroupAnimationWithThen extends GroupAnimation {
+    then(onResolve, _onReject) {
+        return this.finished.finally(onResolve).then(() => { });
+    }
+}
+
+const animationMaps = new WeakMap();
+const animationMapKey = (name, pseudoElement = "") => `${name}:${pseudoElement}`;
+function getAnimationMap(element) {
+    const map = animationMaps.get(element) || new Map();
+    animationMaps.set(element, map);
+    return map;
+}
+
+function getValueTransition$1(transition, key) {
+    return (transition?.[key] ??
+        transition?.["default"] ??
+        transition);
+}
+
+const pxValues = new Set([
+    // Border props
+    "borderWidth",
+    "borderTopWidth",
+    "borderRightWidth",
+    "borderBottomWidth",
+    "borderLeftWidth",
+    "borderRadius",
+    "radius",
+    "borderTopLeftRadius",
+    "borderTopRightRadius",
+    "borderBottomRightRadius",
+    "borderBottomLeftRadius",
+    // Positioning props
+    "width",
+    "maxWidth",
+    "height",
+    "maxHeight",
+    "top",
+    "right",
+    "bottom",
+    "left",
+    // Spacing props
+    "padding",
+    "paddingTop",
+    "paddingRight",
+    "paddingBottom",
+    "paddingLeft",
+    "margin",
+    "marginTop",
+    "marginRight",
+    "marginBottom",
+    "marginLeft",
+    // Misc
+    "backgroundPositionX",
+    "backgroundPositionY",
+]);
+
+function applyPxDefaults(keyframes, name) {
+    for (let i = 0; i < keyframes.length; i++) {
+        if (typeof keyframes[i] === "number" && pxValues.has(name)) {
+            keyframes[i] = keyframes[i] + "px";
+        }
+    }
+}
+
+function resolveElements(elementOrSelector, scope, selectorCache) {
+    if (elementOrSelector instanceof EventTarget) {
+        return [elementOrSelector];
+    }
+    else if (typeof elementOrSelector === "string") {
+        let root = document;
+        if (scope) {
+            root = scope.current;
+        }
+        const elements = selectorCache?.[elementOrSelector] ??
+            root.querySelectorAll(elementOrSelector);
+        return elements ? Array.from(elements) : [];
+    }
+    return Array.from(elementOrSelector);
+}
+
+function getComputedStyle(element, name) {
+    const computedStyle = window.getComputedStyle(element);
+    return isCSSVar(name)
+        ? computedStyle.getPropertyValue(name)
+        : computedStyle[name];
+}
+
+const isMotionValue = (value) => Boolean(value && value.getVelocity);
+
+function isDOMKeyframes(keyframes) {
+    return typeof keyframes === "object" && !Array.isArray(keyframes);
+}
+
+function resolveSubjects(subject, keyframes, scope, selectorCache) {
+    if (typeof subject === "string" && isDOMKeyframes(keyframes)) {
+        return resolveElements(subject, scope, selectorCache);
+    }
+    else if (subject instanceof NodeList) {
+        return Array.from(subject);
+    }
+    else if (Array.isArray(subject)) {
+        return subject;
+    }
+    else {
+        return [subject];
+    }
+}
+
+function calculateRepeatDuration(duration, repeat, _repeatDelay) {
+    return duration * (repeat + 1);
+}
+
+/**
+ * Given a absolute or relative time definition and current/prev time state of the sequence,
+ * calculate an absolute time for the next keyframes.
+ */
+function calcNextTime(current, next, prev, labels) {
+    if (typeof next === "number") {
+        return next;
+    }
+    else if (next.startsWith("-") || next.startsWith("+")) {
+        return Math.max(0, current + parseFloat(next));
+    }
+    else if (next === "<") {
+        return prev;
+    }
+    else {
+        return labels.get(next) ?? current;
+    }
+}
+
+function eraseKeyframes(sequence, startTime, endTime) {
+    for (let i = 0; i < sequence.length; i++) {
+        const keyframe = sequence[i];
+        if (keyframe.at > startTime && keyframe.at < endTime) {
+            removeItem(sequence, keyframe);
+            // If we remove this item we have to push the pointer back one
+            i--;
+        }
+    }
+}
+function addKeyframes(sequence, keyframes, easing, offset, startTime, endTime) {
+    /**
+     * Erase every existing value between currentTime and targetTime,
+     * this will essentially splice this timeline into any currently
+     * defined ones.
+     */
+    eraseKeyframes(sequence, startTime, endTime);
+    for (let i = 0; i < keyframes.length; i++) {
+        sequence.push({
+            value: keyframes[i],
+            at: mixNumber(startTime, endTime, offset[i]),
+            easing: getEasingForSegment(easing, i),
+        });
+    }
+}
+
+/**
+ * Take an array of times that represent repeated keyframes. For instance
+ * if we have original times of [0, 0.5, 1] then our repeated times will
+ * be [0, 0.5, 1, 1, 1.5, 2]. Loop over the times and scale them back
+ * down to a 0-1 scale.
+ */
+function normalizeTimes(times, repeat) {
+    for (let i = 0; i < times.length; i++) {
+        times[i] = times[i] / (repeat + 1);
+    }
+}
+
+function compareByTime(a, b) {
+    if (a.at === b.at) {
+        if (a.value === null)
+            return 1;
+        if (b.value === null)
+            return -1;
+        return 0;
+    }
+    else {
+        return a.at - b.at;
+    }
+}
+
+const defaultSegmentEasing = "easeInOut";
+const MAX_REPEAT = 20;
+function createAnimationsFromSequence(sequence, { defaultTransition = {}, ...sequenceTransition } = {}, scope, generators) {
+    const defaultDuration = defaultTransition.duration || 0.3;
+    const animationDefinitions = new Map();
+    const sequences = new Map();
+    const elementCache = {};
+    const timeLabels = new Map();
+    let prevTime = 0;
+    let currentTime = 0;
+    let totalDuration = 0;
+    /**
+     * Build the timeline by mapping over the sequence array and converting
+     * the definitions into keyframes and offsets with absolute time values.
+     * These will later get converted into relative offsets in a second pass.
+     */
+    for (let i = 0; i < sequence.length; i++) {
+        const segment = sequence[i];
+        /**
+         * If this is a timeline label, mark it and skip the rest of this iteration.
+         */
+        if (typeof segment === "string") {
+            timeLabels.set(segment, currentTime);
+            continue;
+        }
+        else if (!Array.isArray(segment)) {
+            timeLabels.set(segment.name, calcNextTime(currentTime, segment.at, prevTime, timeLabels));
+            continue;
+        }
+        let [subject, keyframes, transition = {}] = segment;
+        /**
+         * If a relative or absolute time value has been specified we need to resolve
+         * it in relation to the currentTime.
+         */
+        if (transition.at !== undefined) {
+            currentTime = calcNextTime(currentTime, transition.at, prevTime, timeLabels);
+        }
+        /**
+         * Keep track of the maximum duration in this definition. This will be
+         * applied to currentTime once the definition has been parsed.
+         */
+        let maxDuration = 0;
+        const resolveValueSequence = (valueKeyframes, valueTransition, valueSequence, elementIndex = 0, numSubjects = 0) => {
+            const valueKeyframesAsList = keyframesAsList(valueKeyframes);
+            const { delay = 0, times = defaultOffset(valueKeyframesAsList), type = "keyframes", repeat, repeatType, repeatDelay = 0, ...remainingTransition } = valueTransition;
+            let { ease = defaultTransition.ease || "easeOut", duration } = valueTransition;
+            /**
+             * Resolve stagger() if defined.
+             */
+            const calculatedDelay = typeof delay === "function"
+                ? delay(elementIndex, numSubjects)
+                : delay;
+            /**
+             * If this animation should and can use a spring, generate a spring easing function.
+             */
+            const numKeyframes = valueKeyframesAsList.length;
+            const createGenerator = isGenerator(type)
+                ? type
+                : generators?.[type];
+            if (numKeyframes <= 2 && createGenerator) {
+                /**
+                 * As we're creating an easing function from a spring,
+                 * ideally we want to generate it using the real distance
+                 * between the two keyframes. However this isn't always
+                 * possible - in these situations we use 0-100.
+                 */
+                let absoluteDelta = 100;
+                if (numKeyframes === 2 &&
+                    isNumberKeyframesArray(valueKeyframesAsList)) {
+                    const delta = valueKeyframesAsList[1] - valueKeyframesAsList[0];
+                    absoluteDelta = Math.abs(delta);
+                }
+                const springTransition = { ...remainingTransition };
+                if (duration !== undefined) {
+                    springTransition.duration = secondsToMilliseconds(duration);
+                }
+                const springEasing = createGeneratorEasing(springTransition, absoluteDelta, createGenerator);
+                ease = springEasing.ease;
+                duration = springEasing.duration;
+            }
+            duration ?? (duration = defaultDuration);
+            const startTime = currentTime + calculatedDelay;
+            /**
+             * If there's only one time offset of 0, fill in a second with length 1
+             */
+            if (times.length === 1 && times[0] === 0) {
+                times[1] = 1;
+            }
+            /**
+             * Fill out if offset if fewer offsets than keyframes
+             */
+            const remainder = times.length - valueKeyframesAsList.length;
+            remainder > 0 && fillOffset(times, remainder);
+            /**
+             * If only one value has been set, ie [1], push a null to the start of
+             * the keyframe array. This will let us mark a keyframe at this point
+             * that will later be hydrated with the previous value.
+             */
+            valueKeyframesAsList.length === 1 &&
+                valueKeyframesAsList.unshift(null);
+            /**
+             * Handle repeat options
+             */
+            if (repeat) {
+                invariant(repeat < MAX_REPEAT, "Repeat count too high, must be less than 20");
+                duration = calculateRepeatDuration(duration, repeat);
+                const originalKeyframes = [...valueKeyframesAsList];
+                const originalTimes = [...times];
+                ease = Array.isArray(ease) ? [...ease] : [ease];
+                const originalEase = [...ease];
+                for (let repeatIndex = 0; repeatIndex < repeat; repeatIndex++) {
+                    valueKeyframesAsList.push(...originalKeyframes);
+                    for (let keyframeIndex = 0; keyframeIndex < originalKeyframes.length; keyframeIndex++) {
+                        times.push(originalTimes[keyframeIndex] + (repeatIndex + 1));
+                        ease.push(keyframeIndex === 0
+                            ? "linear"
+                            : getEasingForSegment(originalEase, keyframeIndex - 1));
+                    }
+                }
+                normalizeTimes(times, repeat);
+            }
+            const targetTime = startTime + duration;
+            /**
+             * Add keyframes, mapping offsets to absolute time.
+             */
+            addKeyframes(valueSequence, valueKeyframesAsList, ease, times, startTime, targetTime);
+            maxDuration = Math.max(calculatedDelay + duration, maxDuration);
+            totalDuration = Math.max(targetTime, totalDuration);
+        };
+        if (isMotionValue(subject)) {
+            const subjectSequence = getSubjectSequence(subject, sequences);
+            resolveValueSequence(keyframes, transition, getValueSequence("default", subjectSequence));
+        }
+        else {
+            const subjects = resolveSubjects(subject, keyframes, scope, elementCache);
+            const numSubjects = subjects.length;
+            /**
+             * For every element in this segment, process the defined values.
+             */
+            for (let subjectIndex = 0; subjectIndex < numSubjects; subjectIndex++) {
+                /**
+                 * Cast necessary, but we know these are of this type
+                 */
+                keyframes = keyframes;
+                transition = transition;
+                const thisSubject = subjects[subjectIndex];
+                const subjectSequence = getSubjectSequence(thisSubject, sequences);
+                for (const key in keyframes) {
+                    resolveValueSequence(keyframes[key], getValueTransition(transition, key), getValueSequence(key, subjectSequence), subjectIndex, numSubjects);
+                }
+            }
+        }
+        prevTime = currentTime;
+        currentTime += maxDuration;
+    }
+    /**
+     * For every element and value combination create a new animation.
+     */
+    sequences.forEach((valueSequences, element) => {
+        for (const key in valueSequences) {
+            const valueSequence = valueSequences[key];
+            /**
+             * Arrange all the keyframes in ascending time order.
+             */
+            valueSequence.sort(compareByTime);
+            const keyframes = [];
+            const valueOffset = [];
+            const valueEasing = [];
+            /**
+             * For each keyframe, translate absolute times into
+             * relative offsets based on the total duration of the timeline.
+             */
+            for (let i = 0; i < valueSequence.length; i++) {
+                const { at, value, easing } = valueSequence[i];
+                keyframes.push(value);
+                valueOffset.push(progress(0, totalDuration, at));
+                valueEasing.push(easing || "easeOut");
+            }
+            /**
+             * If the first keyframe doesn't land on offset: 0
+             * provide one by duplicating the initial keyframe. This ensures
+             * it snaps to the first keyframe when the animation starts.
+             */
+            if (valueOffset[0] !== 0) {
+                valueOffset.unshift(0);
+                keyframes.unshift(keyframes[0]);
+                valueEasing.unshift(defaultSegmentEasing);
+            }
+            /**
+             * If the last keyframe doesn't land on offset: 1
+             * provide one with a null wildcard value. This will ensure it
+             * stays static until the end of the animation.
+             */
+            if (valueOffset[valueOffset.length - 1] !== 1) {
+                valueOffset.push(1);
+                keyframes.push(null);
+            }
+            if (!animationDefinitions.has(element)) {
+                animationDefinitions.set(element, {
+                    keyframes: {},
+                    transition: {},
+                });
+            }
+            const definition = animationDefinitions.get(element);
+            definition.keyframes[key] = keyframes;
+            definition.transition[key] = {
+                ...defaultTransition,
+                duration: totalDuration,
+                ease: valueEasing,
+                times: valueOffset,
+                ...sequenceTransition,
+            };
+        }
+    });
+    return animationDefinitions;
+}
+function getSubjectSequence(subject, sequences) {
+    !sequences.has(subject) && sequences.set(subject, {});
+    return sequences.get(subject);
+}
+function getValueSequence(name, sequences) {
+    if (!sequences[name])
+        sequences[name] = [];
+    return sequences[name];
+}
+function keyframesAsList(keyframes) {
+    return Array.isArray(keyframes) ? keyframes : [keyframes];
+}
+function getValueTransition(transition, key) {
+    return transition && transition[key]
+        ? {
+            ...transition,
+            ...transition[key],
+        }
+        : { ...transition };
+}
+const isNumber = (keyframe) => typeof keyframe === "number";
+const isNumberKeyframesArray = (keyframes) => keyframes.every(isNumber);
+
+function animateElements(elementOrSelector, keyframes, options, scope) {
+    const elements = resolveElements(elementOrSelector, scope);
+    const numElements = elements.length;
+    invariant(Boolean(numElements), "No valid element provided.");
+    /**
+     * WAAPI doesn't support interrupting animations.
+     *
+     * Therefore, starting animations requires a three-step process:
+     * 1. Stop existing animations (write styles to DOM)
+     * 2. Resolve keyframes (read styles from DOM)
+     * 3. Create new animations (write styles to DOM)
+     *
+     * The hybrid `animate()` function uses AsyncAnimation to resolve
+     * keyframes before creating new animations, which removes style
+     * thrashing. Here, we have much stricter filesize constraints.
+     * Therefore we do this in a synchronous way that ensures that
+     * at least within `animate()` calls there is no style thrashing.
+     *
+     * In the motion-native-animate-mini-interrupt benchmark this
+     * was 80% faster than a single loop.
+     */
+    const animationDefinitions = [];
+    /**
+     * Step 1: Build options and stop existing animations (write)
+     */
+    for (let i = 0; i < numElements; i++) {
+        const element = elements[i];
+        const elementTransition = { ...options };
+        /**
+         * Resolve stagger function if provided.
+         */
+        if (typeof elementTransition.delay === "function") {
+            elementTransition.delay = elementTransition.delay(i, numElements);
+        }
+        for (const valueName in keyframes) {
+            let valueKeyframes = keyframes[valueName];
+            if (!Array.isArray(valueKeyframes)) {
+                valueKeyframes = [valueKeyframes];
+            }
+            const valueOptions = {
+                ...getValueTransition$1(elementTransition, valueName),
+            };
+            valueOptions.duration && (valueOptions.duration = secondsToMilliseconds(valueOptions.duration));
+            valueOptions.delay && (valueOptions.delay = secondsToMilliseconds(valueOptions.delay));
+            /**
+             * If there's an existing animation playing on this element then stop it
+             * before creating a new one.
+             */
+            const map = getAnimationMap(element);
+            const key = animationMapKey(valueName, valueOptions.pseudoElement || "");
+            const currentAnimation = map.get(key);
+            currentAnimation && currentAnimation.stop();
+            animationDefinitions.push({
+                map,
+                key,
+                unresolvedKeyframes: valueKeyframes,
+                options: {
+                    ...valueOptions,
+                    element,
+                    name: valueName,
+                    allowFlatten: !elementTransition.type && !elementTransition.ease,
+                },
+            });
+        }
+    }
+    /**
+     * Step 2: Resolve keyframes (read)
+     */
+    for (let i = 0; i < animationDefinitions.length; i++) {
+        const { unresolvedKeyframes, options: animationOptions } = animationDefinitions[i];
+        const { element, name, pseudoElement } = animationOptions;
+        if (!pseudoElement && unresolvedKeyframes[0] === null) {
+            unresolvedKeyframes[0] = getComputedStyle(element, name);
+        }
+        fillWildcards(unresolvedKeyframes);
+        applyPxDefaults(unresolvedKeyframes, name);
+        /**
+         * If we only have one keyframe, explicitly read the initial keyframe
+         * from the computed style. This is to ensure consistency with WAAPI behaviour
+         * for restarting animations, for instance .play() after finish, when it
+         * has one vs two keyframes.
+         */
+        if (!pseudoElement && unresolvedKeyframes.length < 2) {
+            unresolvedKeyframes.unshift(getComputedStyle(element, name));
+        }
+        animationOptions.keyframes = unresolvedKeyframes;
+    }
+    /**
+     * Step 3: Create new animations (write)
+     */
+    const animations = [];
+    for (let i = 0; i < animationDefinitions.length; i++) {
+        const { map, key, options: animationOptions } = animationDefinitions[i];
+        const animation = new NativeAnimation(animationOptions);
+        map.set(key, animation);
+        animation.finished.finally(() => map.delete(key));
+        animations.push(animation);
+    }
+    return animations;
+}
+
+function animateSequence(definition, options) {
+    const animations = [];
+    createAnimationsFromSequence(definition, options).forEach(({ keyframes, transition }, element) => {
+        animations.push(...animateElements(element, keyframes, transition));
+    });
+    return new GroupAnimationWithThen(animations);
+}
+
+const createScopedWaapiAnimate = (scope) => {
+    function scopedAnimate(elementOrSelector, keyframes, options) {
+        return new GroupAnimationWithThen(animateElements(elementOrSelector, keyframes, options, scope));
+    }
+    return scopedAnimate;
+};
+const animateMini = /*@__PURE__*/ createScopedWaapiAnimate();
+
+exports.animate = animateMini;
+exports.animateSequence = animateSequence;
