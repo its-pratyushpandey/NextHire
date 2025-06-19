@@ -23,6 +23,15 @@ export {
   type CompletionCreateParamsStreaming,
 } from './completions';
 export {
+  ContainerListResponsesPage,
+  Containers,
+  type ContainerCreateResponse,
+  type ContainerRetrieveResponse,
+  type ContainerListResponse,
+  type ContainerCreateParams,
+  type ContainerListParams,
+} from './containers/containers';
+export {
   Embeddings,
   type CreateEmbeddingResponse,
   type Embedding,
@@ -33,10 +42,7 @@ export {
   EvalListResponsesPage,
   Evals,
   type EvalCustomDataSourceConfig,
-  type EvalLabelModelGrader,
   type EvalStoredCompletionsDataSourceConfig,
-  type EvalStringCheckGrader,
-  type EvalTextSimilarityGrader,
   type EvalCreateResponse,
   type EvalRetrieveResponse,
   type EvalUpdateResponse,
@@ -57,6 +63,7 @@ export {
   type FileListParams,
 } from './files';
 export { FineTuning } from './fine-tuning/fine-tuning';
+export { Graders } from './graders/graders';
 export {
   Images,
   type Image,

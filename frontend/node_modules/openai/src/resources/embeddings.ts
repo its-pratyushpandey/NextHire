@@ -6,6 +6,15 @@ import * as Core from '../core';
 export class Embeddings extends APIResource {
   /**
    * Creates an embedding vector representing the input text.
+   *
+   * @example
+   * ```ts
+   * const createEmbeddingResponse =
+   *   await client.embeddings.create({
+   *     input: 'The quick brown fox jumped over the lazy dog',
+   *     model: 'text-embedding-3-small',
+   *   });
+   * ```
    */
   create(
     body: EmbeddingCreateParams,
@@ -121,11 +130,12 @@ export interface EmbeddingCreateParams {
    * Input text to embed, encoded as a string or array of tokens. To embed multiple
    * inputs in a single request, pass an array of strings or array of token arrays.
    * The input must not exceed the max input tokens for the model (8192 tokens for
-   * `text-embedding-ada-002`), cannot be an empty string, and any array must be 2048
+   * all embedding models), cannot be an empty string, and any array must be 2048
    * dimensions or less.
    * [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-   * for counting tokens. Some models may also impose a limit on total number of
-   * tokens summed across inputs.
+   * for counting tokens. In addition to the per-input token limit, all embedding
+   * models enforce a maximum of 300,000 tokens summed across all inputs in a single
+   * request.
    */
   input: string | Array<string> | Array<number> | Array<Array<number>>;
 
