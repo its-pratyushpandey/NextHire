@@ -1,6 +1,7 @@
+// Job model
 import { Job } from '../models/job.model.js';
 
-// admin post krega job
+// Admin: create job
 export const postJob = async (req, res) => {
     try {
         const job = await Job.create(req.body);
@@ -11,12 +12,11 @@ export const postJob = async (req, res) => {
     }
 }
 
-
-// student k liye
+// Student: get all jobs
 export const getAllJobs = async (req, res) => {
     try {
         const keyword = req.query.keyword || '';
-        const jobs = await Job.find({ title: { $regex: keyword, $options: 'i' } }).populate('company');        // Always return 200 with an array, even if empty
+        const jobs = await Job.find({ title: { $regex: keyword, $options: 'i' } }).populate('company');
         return res.status(200).json({ jobs, success: true });
     } catch (error) {
         console.log(error);
@@ -24,7 +24,7 @@ export const getAllJobs = async (req, res) => {
     }
 }
 
-// student
+// Student: get job by id
 export const getJobById = async (req, res) => {
     try {
         const jobId = req.params.id;
@@ -39,7 +39,7 @@ export const getJobById = async (req, res) => {
     }
 }
 
-// admin kitne job create kra hai abhi tk
+// Admin: get jobs created by admin
 export const getAdminJobs = async (req, res) => {
     try {
         const adminId = req.id;
@@ -62,6 +62,7 @@ export const getAdminJobs = async (req, res) => {
     }
 }
 
+// Recruiter: get jobs
 export const getRecruiterJobs = async (req, res) => {
   try {
     const recruiterId = req.id;
@@ -89,6 +90,7 @@ export const getRecruiterJobs = async (req, res) => {
   }
 };
 
+// Delete job
 export const deleteJob = async (req, res) => {
     try {
         const jobId = req.params.id;
@@ -101,7 +103,7 @@ export const deleteJob = async (req, res) => {
             headers: req.headers
         });
 
-        // Find the job and check if it exists
+        // Find job
         const job = await Job.findById(jobId).populate('created_by');
         
         if (!job) {
@@ -119,7 +121,7 @@ export const deleteJob = async (req, res) => {
             match: job.created_by?._id?.toString() === userId
         });
 
-        // Check if the user is authorized to delete this job
+        // Auth check
         if (!job.created_by || job.created_by._id.toString() !== userId) {
             console.log('Authorization failed:', {
                 jobCreator: job.created_by?._id,
@@ -133,7 +135,7 @@ export const deleteJob = async (req, res) => {
             });
         }
 
-        // Delete the job
+        // Delete job
         const deletedJob = await Job.findByIdAndDelete(jobId);
         
         if (!deletedJob) {
