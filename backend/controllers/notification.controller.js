@@ -1,7 +1,8 @@
+// Models
 import { Notification } from '../models/notification.model.js';
 import { User } from '../models/user.model.js';
 
-// Generate a smart notification (job alert, interview reminder, insight)
+// Create smart notification
 export const generateSmartNotification = async (userId, type, title, message, data = {}) => {
   return Notification.create({
     user: userId,
@@ -13,7 +14,7 @@ export const generateSmartNotification = async (userId, type, title, message, da
   });
 };
 
-// Fetch smart notifications for a user (premium only)
+// Get smart notifications (premium)
 export const getSmartNotifications = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -29,7 +30,7 @@ export const getSmartNotifications = async (req, res) => {
   }
 };
 
-// Example: Trigger a job alert (to be called from job matching logic)
+// Send job alert
 export const sendJobAlert = async (userId, job) => {
   return generateSmartNotification(
     userId,
@@ -40,7 +41,7 @@ export const sendJobAlert = async (userId, job) => {
   );
 };
 
-// Example: Trigger an interview reminder
+// Send interview reminder
 export const sendInterviewReminder = async (userId, interview) => {
   return generateSmartNotification(
     userId,
@@ -51,7 +52,7 @@ export const sendInterviewReminder = async (userId, interview) => {
   );
 };
 
-// Example: Trigger an insight notification
+// Send insight notification
 export const sendInsight = async (userId, insight) => {
   return generateSmartNotification(
     userId,
