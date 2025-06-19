@@ -1,28 +1,28 @@
-// Controller to get all conversations for a recruiter with unread count and last message
+// Get recruiter conversations
 import ChatMessage from '../models/chat.model.js';
 import { User } from '../models/user.model.js';
 
+// Get all applicant conversations for recruiter
 export const getAllApplicantConversations = async (req, res) => {
   try {
-    // Always get recruiterId from auth (for security)
+    // Recruiter ID from auth
     const recruiterId = req.user?._id?.toString();
-    // Find all roomIds where this recruiter is involved
+    // Find all roomIds for recruiter
     const chatRooms = await ChatMessage.find({
       roomId: { $regex: recruiterId }
     }).distinct('roomId');
 
-    // For each room, get the latest message and unread count for recruiter
+    // For each room, get last message and unread count
     const conversations = await Promise.all(chatRooms.map(async (roomId) => {
       const lastMsg = await ChatMessage.findOne({ roomId }).sort({ timestamp: -1 });
-      // Unread for recruiter
+      // Unread count
       const unreadRecruiter = recruiterId ? await ChatMessage.countDocuments({
         roomId,
         senderId: { $ne: recruiterId },
         [`readBy.${recruiterId}`]: { $ne: true }
       }) : 0;
-      // Extract both user IDs from roomId
+      // Get candidate ID
       const ids = roomId.split('_');
-      // The candidate is the one that is NOT the recruiter
       const candidateId = ids.find(id => id !== recruiterId);
       const candidate = await User.findById(candidateId);
       return {
