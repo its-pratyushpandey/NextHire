@@ -1,9 +1,11 @@
+// Import models
 import SavedJob from "../models/savedJob.model.js";
 import { Job } from "../models/job.model.js";
 
+// Save or unsave a job
 export const saveJob = async (req, res) => {
     try {
-        // Log the request data for debugging
+        // Log request
         console.log('Save job request:', {
             body: req.body,
             user: req.user
@@ -12,7 +14,7 @@ export const saveJob = async (req, res) => {
         const { jobId } = req.body;
         const userId = req.user._id;
 
-        // Validate jobId
+        // Check jobId
         if (!jobId) {
             return res.status(400).json({
                 success: false,
@@ -20,7 +22,7 @@ export const saveJob = async (req, res) => {
             });
         }
 
-        // Validate userId
+        // Check userId
         if (!userId) {
             return res.status(400).json({
                 success: false,
@@ -28,7 +30,7 @@ export const saveJob = async (req, res) => {
             });
         }
 
-        // Check if job exists
+        // Find job
         const job = await Job.findById(jobId);
         if (!job) {
             return res.status(404).json({
@@ -37,10 +39,9 @@ export const saveJob = async (req, res) => {
             });
         }
 
-        // Check if already saved
+        // Toggle save
         const existingSave = await SavedJob.findOne({ user: userId, job: jobId });
         if (existingSave) {
-            // If already saved, remove it (toggle functionality)
             await SavedJob.findByIdAndDelete(existingSave._id);
             return res.status(200).json({
                 success: true,
@@ -49,13 +50,13 @@ export const saveJob = async (req, res) => {
             });
         }
 
-        // Create new saved job
+        // Save job
         const savedJob = await SavedJob.create({
             user: userId,
             job: jobId
         });
 
-        // Verify the save was successful
+        // Check save
         if (!savedJob) {
             throw new Error('Failed to save job');
         }
@@ -68,13 +69,14 @@ export const saveJob = async (req, res) => {
         });
 
     } catch (error) {
+        // Log error
         console.error("Save job error:", {
             message: error.message,
             stack: error.stack,
             name: error.name
         });
 
-        // Handle specific error types
+        // Validation error
         if (error.name === 'ValidationError') {
             return res.status(400).json({
                 success: false,
@@ -83,6 +85,7 @@ export const saveJob = async (req, res) => {
             });
         }
 
+        // Cast error
         if (error.name === 'CastError') {
             return res.status(400).json({
                 success: false,
@@ -98,11 +101,12 @@ export const saveJob = async (req, res) => {
     }
 };
 
+// Get all saved jobs
 export const getSavedJobs = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        // Validate userId
+        // Check userId
         if (!userId) {
             return res.status(400).json({
                 success: false,
@@ -110,6 +114,7 @@ export const getSavedJobs = async (req, res) => {
             });
         }
 
+        // Find saved jobs
         const savedJobs = await SavedJob.find({ user: userId })
             .populate({
                 path: 'job',
@@ -124,6 +129,7 @@ export const getSavedJobs = async (req, res) => {
         });
 
     } catch (error) {
+        // Log error
         console.error("Get saved jobs error:", {
             message: error.message,
             stack: error.stack,
