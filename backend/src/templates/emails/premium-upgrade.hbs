@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .feature {
+      margin: 15px 0;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 4px;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #6366f1;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Welcome to Premium!</h1>
+  </div>
+  
+  <div class="content">
+    <p>Dear {{name}},</p>
+    
+    <p>Thank you for upgrading to our {{plan}} plan! We're excited to have you join our premium community of recruiters.</p>
+    
+    <h2>Your Premium Benefits</h2>
+    
+    {{#if (eq plan "premium")}}
+      <div class="feature">
+        <strong>Advanced Job Matching</strong>
+        <p>Get AI-powered job matching for better candidate placement.</p>
+      </div>
+      <div class="feature">
+        <strong>Priority Candidate Access</strong>
+        <p>Be the first to view and contact top candidates.</p>
+      </div>
+      <div class="feature">
+        <strong>Enhanced Analytics</strong>
+        <p>Access detailed insights about your job postings and candidates.</p>
+      </div>
+    {{else}}
+      <div class="feature">
+        <strong>AI-Powered Matching</strong>
+        <p>Advanced AI algorithms for perfect candidate-job matches.</p>
+      </div>
+      <div class="feature">
+        <strong>Featured Listings</strong>
+        <p>Your job postings will be prominently featured.</p>
+      </div>
+      <div class="feature">
+        <strong>Priority Support</strong>
+        <p>Get dedicated support for all your needs.</p>
+      </div>
+    {{/if}}
+    
+    <p>Your subscription will be active until {{expiryDate}}.</p>
+    
+    <a href="{{dashboardUrl}}" class="button">Go to Dashboard</a>
+  </div>
+  
+  <div class="footer">
+    <p>If you have any questions, please don't hesitate to contact our support team.</p>
+    <p>&copy; 2024 Job Portal. All rights reserved.</p>
+  </div>
+</body>
+</html> 
