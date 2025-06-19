@@ -1,11 +1,16 @@
+// Env setup
 import dotenv from "dotenv";
 dotenv.config();
+
+// Imports
 import OpenAI from "openai";
 import { Job } from "../models/job.model.js";
 import { User } from "../models/user.model.js";
 
+// OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// Cosine similarity
 function cosineSimilarity(a, b) {
   const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
   const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
@@ -13,22 +18,24 @@ function cosineSimilarity(a, b) {
   return dot / (normA * normB);
 }
 
+// Main job matching controller
 export const matchJobs = async (req, res) => {
   try {
-    // Only allow premium users
+    // Premium check
     const user = await User.findById(req.id);
     if (!user || user.subscription?.plan !== "premium") {
       return res.status(403).json({ message: "Premium feature only" });
     }
 
-    // Use resumeText or fallback to profile summary
+    // Get resume/profile
     const resumeText = user.resumeText || user.bio || (user.skills || []).join(", ") || "";
     if (!resumeText) return res.status(400).json({ message: "No resume/profile data found" });
 
+    // Get jobs
     const jobs = await Job.find({ status: "active" });
     if (!jobs.length) return res.json({ jobs: [] });
 
-    // Get embeddings for resume and jobs
+    // Embeddings
     const [resumeEmbedding] = (await openai.embeddings.create({
       model: "text-embedding-ada-002",
       input: [resumeText]
@@ -48,6 +55,7 @@ export const matchJobs = async (req, res) => {
 
     scoredJobs.sort((a, b) => b.matchScore - a.matchScore);
 
+    // Respond
     res.json({ jobs: scoredJobs.slice(0, 10) });
   } catch (err) {
     res.status(500).json({ message: "Job matching failed", error: err.message });
