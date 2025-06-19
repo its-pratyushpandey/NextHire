@@ -1,0 +1,1 @@
+{"version":3,"file":"formatYearDropdown.js","sourceRoot":"","sources":["../../../src/formatters/formatYearDropdown.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAgB,MAAM,uBAAuB,CAAC;AAErE;;;;;GAKG;AACH,MAAM,UAAU,kBAAkB,CAChC,IAAU,EACV,UAAmB,cAAc;IAEjC,OAAO,OAAO,CAAC,MAAM,CAAC,IAAI,EAAE,MAAM,CAAC,CAAC;AACtC,CAAC;AAED;;;;GAIG;AACH,MAAM,CAAC,MAAM,iBAAiB,GAAG,kBAAkB,CAAC"}

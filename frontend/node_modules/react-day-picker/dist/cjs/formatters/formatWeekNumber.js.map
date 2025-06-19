@@ -1,0 +1,1 @@
+{"version":3,"file":"formatWeekNumber.js","sourceRoot":"","sources":["../../../src/formatters/formatWeekNumber.ts"],"names":[],"mappings":";;AAOA,4CAKC;AAZD;;;;;;GAMG;AACH,SAAgB,gBAAgB,CAAC,UAAkB;IACjD,IAAI,UAAU,GAAG,EAAE,EAAE,CAAC;QACpB,OAAO,IAAI,UAAU,CAAC,cAAc,EAAE,EAAE,CAAC;IAC3C,CAAC;IACD,OAAO,GAAG,UAAU,CAAC,cAAc,EAAE,EAAE,CAAC;AAC1C,CAAC"}

@@ -1,0 +1,19 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.YearsDropdown = YearsDropdown;
+const react_1 = __importDefault(require("react"));
+const useDayPicker_js_1 = require("../useDayPicker.js");
+/**
+ * Render the dropdown to navigate between years.
+ *
+ * @group Components
+ * @see https://daypicker.dev/guides/custom-components
+ */
+function YearsDropdown(props) {
+    const { components } = (0, useDayPicker_js_1.useDayPicker)();
+    return react_1.default.createElement(components.Dropdown, { ...props });
+}
+//# sourceMappingURL=YearsDropdown.js.map

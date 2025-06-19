@@ -1,0 +1,11 @@
+import React from "react";
+/**
+ * Render the weeks in the month grid.
+ *
+ * @group Components
+ * @see https://daypicker.dev/guides/custom-components
+ */
+export function Weeks(props) {
+    return React.createElement("tbody", { ...props });
+}
+//# sourceMappingURL=Weeks.js.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"formatWeekdayName.js","sourceRoot":"","sources":["../../../src/formatters/formatWeekdayName.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAuB,MAAM,uBAAuB,CAAC;AAErE;;;;;;GAMG;AACH,MAAM,UAAU,iBAAiB,CAC/B,OAAa,EACb,OAAwB,EACxB,OAAiB;IAEjB,OAAO,CAAC,OAAO,IAAI,IAAI,OAAO,CAAC,OAAO,CAAC,CAAC,CAAC,MAAM,CAAC,OAAO,EAAE,QAAQ,CAAC,CAAC;AACrE,CAAC"}
