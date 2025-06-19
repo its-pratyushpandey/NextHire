@@ -1,13 +1,16 @@
+// Model imports
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 
+// Apply for a job
 export const applyJob = async (req, res) => {
     try {
         const userId = req.id;
         const jobId = req.params.id;
         
         if (!jobId) {
+            // Job id required
             return res.status(400).json({
                 message: "Job id is required.",
                 success: false
@@ -21,6 +24,7 @@ export const applyJob = async (req, res) => {
         });
 
         if (existingApplication) {
+            // Already applied
             return res.status(400).json({
                 message: "You have already applied for this job",
                 success: false
@@ -36,6 +40,7 @@ export const applyJob = async (req, res) => {
 
         const missingFields = requiredFields.filter(field => !req.body[field]);
         if (missingFields.length > 0) {
+            // Missing fields
             return res.status(400).json({
                 message: `Missing required fields: ${missingFields.join(', ')}`,
                 success: false
@@ -44,13 +49,14 @@ export const applyJob = async (req, res) => {
 
         // Validate file uploads
         if (!req.files || !req.files.resume || !req.files.photo) {
+            // Resume/photo required
             return res.status(400).json({
                 message: "Resume and photo are required",
                 success: false
             });
         }
 
-        // Upload files to Cloudinary
+        // Upload files
         let resumeUrl = '';
         let photoUrl = '';
         
@@ -69,6 +75,7 @@ export const applyJob = async (req, res) => {
             );
             photoUrl = photoUpload.secure_url;
         } catch (uploadError) {
+            // Upload error
             console.error('File upload error:', uploadError);
             return res.status(500).json({
                 message: "Error uploading files. Please try again.",
@@ -77,7 +84,7 @@ export const applyJob = async (req, res) => {
             });
         }
 
-        // Parse arrays and dates from string
+        // Parse arrays and dates
         const applicationData = {
             ...req.body,
             job: jobId,
@@ -99,9 +106,10 @@ export const applyJob = async (req, res) => {
         // Create application
         const newApplication = await Application.create(applicationData);
 
-        // Update job applications array
+        // Update job applications
         const job = await Job.findById(jobId);
         if (!job) {
+            // Job not found
             return res.status(404).json({
                 message: "Job not found",
                 success: false
@@ -118,6 +126,7 @@ export const applyJob = async (req, res) => {
         });
 
     } catch (error) {
+        // General error
         console.error('Application submission error:', error);
         return res.status(500).json({
             message: "Error submitting application",
@@ -127,6 +136,7 @@ export const applyJob = async (req, res) => {
     }
 };
 
+// Get jobs applied by user
 export const getAppliedJobs = async (req,res) => {
     try {
         const userId = req.id;
@@ -139,6 +149,7 @@ export const getAppliedJobs = async (req,res) => {
             }
         });
         if(!application){
+            // No applications
             return res.status(404).json({
                 message:"No Applications",
                 success:false
@@ -149,10 +160,11 @@ export const getAppliedJobs = async (req,res) => {
             success:true
         })
     } catch (error) {
+        // Error
         console.log(error);
     }
 }
-// admin dekhega kitna user ne apply kiya hai
+// Admin: get applicants for a job
 export const getApplicants = async (req, res) => {
     try {
         const jobId = req.params.id;
@@ -164,6 +176,7 @@ export const getApplicants = async (req, res) => {
             }
         });
         if (!job) {
+            // Job not found
             return res.status(404).json({
                 message: 'Job not found.',
                 success: false
@@ -174,30 +187,34 @@ export const getApplicants = async (req, res) => {
             success: true
         });
     } catch (error) {
+        // Error
         console.log(error);
     }
 };
+// Update application status (admin)
 export const updateStatus = async (req,res) => {
     try {
         const {status} = req.body;
         const applicationId = req.params.id;
         if(!status){
+            // Status required
             return res.status(400).json({
                 message:'status is required',
                 success:false
             })
         };
 
-        // find the application by applicantion id
+        // Find application
         const application = await Application.findOne({_id:applicationId});
         if(!application){
+            // Not found
             return res.status(404).json({
                 message:"Application not found.",
                 success:false
             })
         };
 
-        // update the status
+        // Update status
         application.status = status.toLowerCase();
         await application.save();
 
@@ -207,10 +224,12 @@ export const updateStatus = async (req,res) => {
         });
 
     } catch (error) {
+        // Error
         console.log(error);
     }
 };
 
+// Update application status and generate cover letter
 export const updateApplicationStatus = async (req, res) => {
   try {
     const { applicationId } = req.params;
@@ -221,14 +240,15 @@ export const updateApplicationStatus = async (req, res) => {
       .populate("job");
 
     if (!application) {
+      // Not found
       return res.status(404).json({ message: "Application not found" });
     }
 
     application.status = status;
 
-    // When recruiter accepts/hired, generate cover letter automatically
+    // Generate cover letter if hired/accepted
     if (status === "hired" || status === "accepted") {
-      // Only generate if not already present
+      // Only if not present
       if (!application.coverLetter) {
         const resumeText = application.applicant.resumeText || application.applicant.bio || "";
         const jobTitle = application.job.title;
@@ -250,6 +270,7 @@ export const updateApplicationStatus = async (req, res) => {
 
     res.json({ success: true, application });
   } catch (err) {
+    // Error
     res.status(500).json({ message: "Failed to update application status", error: err.message });
   }
 };
