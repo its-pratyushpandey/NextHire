@@ -1,9 +1,11 @@
+// Import jwt and User model
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 
+// Auth middleware
 const isAuthenticated = async (req, res, next) => {
     try {
-        // Get token from cookie or Authorization header
+        // Get token
         const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
         if (!token) {
@@ -21,14 +23,15 @@ const isAuthenticated = async (req, res, next) => {
         }
 
         try {
+            // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             
-            // Ensure decoded has userId
+            // Check userId
             if (!decoded.userId) {
                 throw new Error('Invalid token format: userId is missing');
             }
 
-            // Get user from database
+            // Find user
             const user = await User.findById(decoded.userId);
             if (!user) {
                 return res.status(401).json({
@@ -37,11 +40,11 @@ const isAuthenticated = async (req, res, next) => {
                 });
             }
 
-            // Set user info in request
+            // Attach user
             req.user = user;
             req.id = user._id;
 
-            // Log successful authentication
+            // Log
             console.log('Authentication successful:', {
                 userId: decoded.userId,
                 path: req.path
@@ -49,6 +52,7 @@ const isAuthenticated = async (req, res, next) => {
 
             next();
         } catch (jwtError) {
+            // JWT error
             console.error('JWT verification failed:', {
                 error: jwtError.message,
                 path: req.path
@@ -60,6 +64,7 @@ const isAuthenticated = async (req, res, next) => {
             });
         }
     } catch (error) {
+        // Other error
         console.error('Authentication error:', {
             error: error.message,
             path: req.path
