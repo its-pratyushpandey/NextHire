@@ -1,8 +1,9 @@
+// Imports
 import { v4 as uuidv4 } from 'uuid';
 import QRCode from 'qrcode';
 import User from '../models/user.model.js';
 
-// Define subscription plans
+// Plans
 const subscriptionPlans = [
     {
         id: 'basic',
@@ -24,13 +25,12 @@ const subscriptionPlans = [
     }
 ];
 
-// Generate QR code for payment
+// Generate QR code
 export const generateQRCode = async (req, res) => {
     try {
         const { planId } = req.body;
         const userId = req.id;
-
-        // Get user details
+        // Get user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -38,8 +38,7 @@ export const generateQRCode = async (req, res) => {
                 message: 'User not found'
             });
         }
-
-        // Get plan details
+        // Get plan
         const plan = subscriptionPlans.find(p => p.id === planId);
         if (!plan) {
             return res.status(400).json({
@@ -47,11 +46,9 @@ export const generateQRCode = async (req, res) => {
                 message: 'Invalid plan selected'
             });
         }
-
-        // Generate a unique transaction ID
+        // Transaction ID
         const transactionId = uuidv4();
-        
-        // Create payment data
+        // Payment data
         const paymentData = {
             transactionId,
             planId,
@@ -61,10 +58,8 @@ export const generateQRCode = async (req, res) => {
             userEmail: user.email,
             timestamp: new Date().toISOString()
         };
-
-        // Generate QR code
+        // QR code
         const qrCodeData = await QRCode.toDataURL(JSON.stringify(paymentData));
-
         res.status(200).json({
             success: true,
             qrCodeData,
@@ -73,6 +68,7 @@ export const generateQRCode = async (req, res) => {
             currency: 'USD'
         });
     } catch (error) {
+        // Error
         console.error('QR Code generation error:', error);
         res.status(500).json({
             success: false,
@@ -86,11 +82,7 @@ export const processPayment = async (req, res) => {
     try {
         const { transactionId, paymentMethod } = req.body;
         const userId = req.id;
-
-        // Here you would typically integrate with a payment gateway
-        // For now, we'll simulate a successful payment
-
-        // Update user's subscription status
+        // Simulate payment
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -98,23 +90,21 @@ export const processPayment = async (req, res) => {
                 message: 'User not found'
             });
         }
-
-        // Update subscription status
+        // Update subscription
         user.subscription = {
             status: 'active',
             plan: req.body.planId,
             startDate: new Date(),
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             paymentMethod
         };
-
         await user.save();
-
         res.status(200).json({
             success: true,
             message: 'Payment processed successfully'
         });
     } catch (error) {
+        // Error
         console.error('Payment processing error:', error);
         res.status(500).json({
             success: false,
@@ -128,14 +118,12 @@ export const getSubscriptionStatus = async (req, res) => {
     try {
         const userId = req.id;
         const user = await User.findById(userId);
-
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
-
         res.status(200).json({
             success: true,
             status: user.subscription?.status || 'free',
@@ -143,6 +131,7 @@ export const getSubscriptionStatus = async (req, res) => {
             endDate: user.subscription?.endDate
         });
     } catch (error) {
+        // Error
         console.error('Subscription status error:', error);
         res.status(500).json({
             success: false,
@@ -156,7 +145,6 @@ export const initiateSubscription = async (req, res) => {
     try {
         const { planId, paymentMethod } = req.body;
         const userId = req.id;
-
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -164,14 +152,13 @@ export const initiateSubscription = async (req, res) => {
                 message: 'User not found'
             });
         }
-
-        // Here you would typically create a payment intent or session
-        // For now, we'll return a success response
+        // Simulate initiation
         res.status(200).json({
             success: true,
             message: 'Subscription initiated successfully'
         });
     } catch (error) {
+        // Error
         console.error('Subscription initiation error:', error);
         res.status(500).json({
             success: false,
@@ -185,15 +172,13 @@ export const cancelSubscription = async (req, res) => {
     try {
         const userId = req.id;
         const user = await User.findById(userId);
-
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
-
-        // Update subscription status
+        // Update subscription
         user.subscription = {
             status: 'cancelled',
             plan: user.subscription?.plan,
@@ -201,14 +186,13 @@ export const cancelSubscription = async (req, res) => {
             endDate: user.subscription?.endDate,
             cancelledAt: new Date()
         };
-
         await user.save();
-
         res.status(200).json({
             success: true,
             message: 'Subscription cancelled successfully'
         });
     } catch (error) {
+        // Error
         console.error('Subscription cancellation error:', error);
         res.status(500).json({
             success: false,
