@@ -1,7 +1,7 @@
 <p align="center">
-  <img width="100" height="100" alt="Motion logo" src="https://user-images.githubusercontent.com/7850794/164965523-3eced4c4-6020-467e-acde-f11b7900ad62.png" />
+ <img width="100" height="100" alt="Motion logo" src="https://github.com/user-attachments/assets/00d6d1c3-72c4-4c2f-a664-69da13182ffc" />
 </p>
-<h1 align="center">Motion for React</h1>
+<h1 align="center">Motion</h1>
 
 <br>
 
@@ -21,7 +21,7 @@
 <hr>
 <br>
 
-Motion for React is an open source, production-ready library that’s designed for all creative developers.
+Motion is an open source, production-ready library that’s designed for all creative developers.
 
 It's the only animation library with a hybrid engine, combining the power of JavaScript animations with the performance of native browser APIs.
 
@@ -58,7 +58,21 @@ Install `motion` via your package manager:
 npm install motion
 ```
 
-Then import the `motion` component:
+#### JavaScript
+
+Import the `animate` function:
+
+```js
+import { animate } from "motion"
+
+animate("div", { scale: 1.2 })
+```
+
+[Get started](https://motion.dev/docs/quick-start)
+
+#### React
+
+Import the `motion` component:
 
 ```jsx
 import { motion } from "motion/react"
@@ -68,13 +82,15 @@ export function Component({ isVisible }) {
 }
 ```
 
+[Get started](https://motion.dev/docs/react-quick-start)
+
 ### 💎 Contribute
 
 -   Want to contribute to Motion? Our [contributing guide](https://github.com/motiondivision/motion/blob/master/CONTRIBUTING.md) has you covered.
 
 ### 👩🏻‍⚖️ License
 
--   Motion for React is MIT licensed.
+-   Motion is MIT licensed.
 
 ## ✨ Sponsors
 
@@ -104,7 +120,6 @@ Motion powers Framer animations, the web builder for creative pros. Design and s
 
 ### Personal
 
--   [Nusu](https://x.com/nusualabuga)
 -   [OlegWock](https://sinja.io)
 -   [Lambert Weller](https://github.com/l-mbert)
 -   [Jake LeBoeuf](https://jklb.wf)

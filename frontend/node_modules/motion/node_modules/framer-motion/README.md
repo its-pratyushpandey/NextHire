@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" height="100" alt="Motion logo" src="https://user-images.githubusercontent.com/7850794/164965523-3eced4c4-6020-467e-acde-f11b7900ad62.png" />
+  <img width="100" height="100" alt="Motion logo" src="https://github.com/user-attachments/assets/00d6d1c3-72c4-4c2f-a664-69da13182ffc" />
 </p>
 <h1 align="center">Motion for React</h1>
 
@@ -104,7 +104,6 @@ Motion powers Framer animations, the web builder for creative pros. Design and s
 
 ### Personal
 
--   [Nusu](https://x.com/nusualabuga)
 -   [OlegWock](https://sinja.io)
 -   [Lambert Weller](https://github.com/l-mbert)
 -   [Jake LeBoeuf](https://jklb.wf)

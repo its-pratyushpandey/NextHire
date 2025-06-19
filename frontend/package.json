@@ -39,7 +39,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^10.18.0",
     "lucide-react": "^0.290.0",
-    "motion": "^12.9.2",
+    "motion": "^12.18.1",
     "multer": "^1.4.5-lts.1",
     "next-themes": "^0.4.6",
     "openai": "^4.97.0",
