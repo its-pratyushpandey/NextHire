@@ -1,15 +1,17 @@
+// Imports
 import { Job } from "../models/job.model.js";
 import { Application } from "../models/application.model.js";
 import { User } from "../models/user.model.js";
 
+// Get recruiter stats
 export const getRecruiterStats = async (req, res) => {
   try {
     const recruiterId = req.id;
-    const timeRange = req.query.timeRange || '30'; // Default 30 days
+    const timeRange = req.query.timeRange || '30'; // days
     const endDate = new Date();
     const startDate = new Date(endDate - (parseInt(timeRange) * 24 * 60 * 60 * 1000));
 
-    // Get recruiter's jobs with applications
+    // Get jobs with applications
     const jobs = await Job.find({ 
       created_by: recruiterId,
     }).populate({
@@ -20,14 +22,14 @@ export const getRecruiterStats = async (req, res) => {
       }
     }).populate('company');
 
-    // Calculate core metrics
+    // Metrics
     const activeJobs = jobs.filter(job => job.status === 'active');
     const allApplications = jobs.flatMap(job => job.applications || []);
     const recentApplications = allApplications.filter(app => 
       new Date(app.createdAt) >= startDate
     );
 
-    // Calculate response metrics
+    // Response metrics
     const respondedApplications = allApplications.filter(app => 
       ['shortlisted', 'interviewed', 'hired', 'rejected'].includes(app.status)
     );
@@ -35,37 +37,34 @@ export const getRecruiterStats = async (req, res) => {
       ? (respondedApplications.length / allApplications.length) * 100 
       : 0;
 
-    // Calculate hiring metrics
+    // Hiring metrics
     const hiredApplications = allApplications.filter(app => app.status === 'hired');
     const totalHiresToDate = hiredApplications.length;
     const recentHires = hiredApplications.filter(app => 
       new Date(app.updatedAt) >= startDate
     );
 
-    // Calculate time-to-hire
+    // Time-to-hire
     const timeToHireData = hiredApplications.map(app => {
       const applicationDate = new Date(app.createdAt);
       const hireDate = new Date(app.updatedAt);
-      return Math.ceil((hireDate - applicationDate) / (1000 * 60 * 60 * 24)); // Days
+      return Math.ceil((hireDate - applicationDate) / (1000 * 60 * 60 * 24));
     });
-
     const avgTimeToHire = timeToHireData.length > 0
       ? Math.round(timeToHireData.reduce((a, b) => a + b) / timeToHireData.length)
       : 0;
 
-    // Calculate monthly trends
+    // Monthly trends
     const last6Months = Array.from({ length: 6 }, (_, i) => {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
       return date.toLocaleString('default', { month: 'short', year: 'numeric' });
     }).reverse();
-
     const monthlyStats = last6Months.map(month => {
       const monthApplications = allApplications.filter(app => {
         const appDate = new Date(app.createdAt);
         return appDate.toLocaleString('default', { month: 'short', year: 'numeric' }) === month;
       });
-
       return {
         month,
         applications: monthApplications.length,
@@ -76,7 +75,7 @@ export const getRecruiterStats = async (req, res) => {
       };
     });
 
-    // Calculate job category distribution
+    // Job category distribution
     const jobCategories = jobs.reduce((acc, job) => {
       const category = job.category || 'Other';
       if (!acc[category]) {
@@ -94,7 +93,7 @@ export const getRecruiterStats = async (req, res) => {
       return acc;
     }, {});
 
-    // Get top performing jobs
+    // Top jobs
     const topPerformingJobs = jobs
       .map(job => ({
         id: job._id,
@@ -109,6 +108,7 @@ export const getRecruiterStats = async (req, res) => {
       .sort((a, b) => b.hires - a.hires || b.applications - a.applications)
       .slice(0, 5);
 
+    // Stats object
     const stats = {
       overview: {
         totalJobs: jobs.length,
@@ -146,7 +146,7 @@ export const getRecruiterStats = async (req, res) => {
       }
     };
 
-    // Update recruiter's profile stats
+    // Update recruiter stats
     await User.findByIdAndUpdate(recruiterId, {
       'profile.stats': {
         totalHires: totalHiresToDate,
