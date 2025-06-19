@@ -1,20 +1,23 @@
+// Imports
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
+// Register user
 export const register = async (req, res) => {
     try {
+        // Get fields
         const { fullname, email, phoneNumber, password, role } = req.body;
-         
+        // Validate fields
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
                 success: false
             });
         }
-
+        // Email regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({
@@ -22,14 +25,14 @@ export const register = async (req, res) => {
                 success: false
             });
         }
-
+        // Password length
         if (password.length < 6) {
             return res.status(400).json({
                 message: "Password must be at least 6 characters",
                 success: false
             });
         }
-
+        // Check user exists
         const user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({
@@ -37,11 +40,9 @@ export const register = async (req, res) => {
                 success: false,
             });
         }
-
-        // Use local default avatar for reliability
-        let profilePhotoUrl = '/default-avatar.png'; // default avatar
-
-        // Handle file upload if present
+        // Default avatar
+        let profilePhotoUrl = '/default-avatar.png';
+        // Upload photo
         if (req.file) {
             const fileUri = getDataUri(req.file);
             if (fileUri) {
@@ -57,9 +58,9 @@ export const register = async (req, res) => {
                 }
             }
         }
-
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        // Create user
         const newUser = await User.create({
             fullname,
             email,
@@ -70,13 +71,12 @@ export const register = async (req, res) => {
                 profilePhoto: profilePhotoUrl
             }
         });
-
         return res.status(201).json({
             message: "Account created successfully.",
             success: true
         });
-
     } catch (error) {
+        // Error
         console.error(error);
         return res.status(500).json({
             message: "Internal server error",
@@ -86,22 +86,23 @@ export const register = async (req, res) => {
     }
 };
 
+// Login user
 export const login = async (req, res) => {
     try {
+        // Get fields
         const { email, password, role } = req.body;
-        
+        // Validate fields
         if (!email || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
                 success: false
             });
         }
-
-        // Check if JWT_SECRET is configured
+        // Check JWT secret
         if (!process.env.JWT_SECRET) {
             throw new Error('JWT_SECRET is not configured');
         }
-
+        // Find user
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
@@ -109,7 +110,7 @@ export const login = async (req, res) => {
                 success: false,
             });
         }
-
+        // Check password
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
@@ -117,22 +118,22 @@ export const login = async (req, res) => {
                 success: false,
             });
         }
-
+        // Check role
         if (role !== user.role) {
             return res.status(400).json({
                 message: "Account doesn't exist with current role.",
                 success: false
             });
         }
-
+        // Token data
         const tokenData = {
             userId: user._id
         };
-
+        // Sign token
         const token = jwt.sign(tokenData, process.env.JWT_SECRET, { 
             expiresIn: '1d' 
         });
-
+        // User response
         user = {
             _id: user._id,
             fullname: user.fullname,
@@ -141,7 +142,7 @@ export const login = async (req, res) => {
             role: user.role,
             profile: user.profile
         };
-
+        // Set cookie and respond
         return res.status(200)
             .cookie("token", token, { 
                 maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
@@ -156,6 +157,7 @@ export const login = async (req, res) => {
                 success: true
             });
     } catch (error) {
+        // Error
         console.error('Login error:', error);
         return res.status(500).json({
             message: "Internal server error",
@@ -165,8 +167,10 @@ export const login = async (req, res) => {
     }
 };
 
+// Logout user
 export const logout = async (req, res) => {
     try {
+        // Clear cookie
         return res.status(200).cookie("token", "", { maxAge: 0 }).json({
             message: "Logged out successfully.",
             success: true
@@ -176,11 +180,13 @@ export const logout = async (req, res) => {
     }
 }
 
+// Update profile
 export const updateProfile = async (req, res) => {
     try {
+        // Get fields
         const { fullname, email, phoneNumber, bio, location, companyRole, expertise, specializations, linkedIn, website } = req.body;
         const userId = req.id;
-
+        // Find user
         let user = await User.findById(userId);
         if (!user) {
             return res.status(400).json({
@@ -188,8 +194,7 @@ export const updateProfile = async (req, res) => {
                 success: false
             });
         }
-
-        // Handle file upload if present
+        // Upload photo
         if (req.file) {
             const fileUri = getDataUri(req.file);
             if (fileUri) {
@@ -205,13 +210,10 @@ export const updateProfile = async (req, res) => {
                 }
             }
         }
-
-        // Update user fields
+        // Update fields
         if (fullname) user.fullname = fullname;
         if (email) user.email = email;
         if (phoneNumber) user.phoneNumber = phoneNumber;
-        
-        // Update profile fields
         if (bio) user.profile.bio = bio;
         if (location) user.profile.location = location;
         if (companyRole) user.profile.companyRole = companyRole;
@@ -219,10 +221,8 @@ export const updateProfile = async (req, res) => {
         if (specializations) user.profile.specializations = JSON.parse(specializations);
         if (linkedIn) user.profile.linkedIn = linkedIn;
         if (website) user.profile.website = website;
-
         await user.save();
-
-        // Format user response
+        // User response
         const userResponse = {
             _id: user._id,
             fullname: user.fullname,
@@ -231,14 +231,13 @@ export const updateProfile = async (req, res) => {
             role: user.role,
             profile: user.profile
         };
-
         return res.status(200).json({
             message: "Profile updated successfully.",
             user: userResponse,
             success: true
         });
-
     } catch (error) {
+        // Error
         console.error('Profile update error:', error);
         return res.status(500).json({
             message: "Internal server error",
