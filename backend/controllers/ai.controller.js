@@ -1,12 +1,17 @@
+
 import axios from 'axios';
 
+// get questions
 export const getInterviewQuestions = async (req, res) => {
+  // get jobTitle
   const { jobTitle } = req.body;
+
+  // validate
   if (!jobTitle || typeof jobTitle !== 'string' || !jobTitle.trim()) {
     return res.status(400).json({ questions: [], error: "Missing or invalid jobTitle" });
   }
 
-  // Example MCQs for demo (replace with AI or DB in production)
+  // demo questions
   const questions = [
     {
       text: `What is a key responsibility of a ${jobTitle}?`,
@@ -60,5 +65,6 @@ export const getInterviewQuestions = async (req, res) => {
     }
   ];
 
+  // send
   res.json({ questions });
 };
