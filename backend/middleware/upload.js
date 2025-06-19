@@ -1,10 +1,13 @@
+// Import multer
 import multer from 'multer';
 
+// Memory storage
 const storage = multer.memoryStorage();
 
+// File filter
 const fileFilter = (req, file, cb) => {
     if (file.fieldname === 'resume') {
-        // Accept PDF, DOC, DOCX files for resume
+        // Resume: PDF/DOC/DOCX
         if (file.mimetype === 'application/pdf' || 
             file.mimetype === 'application/msword' || 
             file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
@@ -13,7 +16,7 @@ const fileFilter = (req, file, cb) => {
             cb(new Error('Invalid file type. Only PDF, DOC, and DOCX files are allowed for resume.'), false);
         }
     } else if (file.fieldname === 'photo') {
-        // Accept image files for photo
+        // Photo: image only
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
@@ -24,13 +27,15 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+// Limits
 const limits = {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-    files: 2 // Maximum 2 files (resume and photo)
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 2 // Max 2 files
 };
 
+// Export upload middleware
 export const upload = multer({
     storage,
     fileFilter,
     limits
-}); 
+});
