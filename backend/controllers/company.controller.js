@@ -1,7 +1,9 @@
+// Imports
 import { Company } from "../models/company.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
+// Register company
 export const registerCompany = async (req, res) => {
     const { companyName } = req.body;
     if (!companyName) {
@@ -22,6 +24,7 @@ export const registerCompany = async (req, res) => {
         success: true
     })
 }
+// Get all companies for user
 export const getCompany = async (req, res) => {
     try {
         const userId = req.id; // logged in user id
@@ -40,7 +43,7 @@ export const getCompany = async (req, res) => {
         console.log(error);
     }
 }
-// get company by id
+// Get company by id
 export const getCompanyById = async (req, res) => {
     try {
         const companyId = req.params.id;
@@ -59,12 +62,13 @@ export const getCompanyById = async (req, res) => {
         console.log(error);
     }
 }
+// Update company
 export const updateCompany = async (req, res) => {
     try {
         const { name, description, website, location } = req.body;
         const updateData = { name, description, website, location };
 
-        // Only process file if it exists
+        // File upload
         if (req.file) {
             const fileUri = getDataUri(req.file);
             if (fileUri) {
