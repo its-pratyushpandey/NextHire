@@ -1,0 +1,25 @@
+@layer utilities {
+  .bg-gradient-premium {
+    @apply bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20;
+  }
+
+  .footer-link-hover {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .recruiter-gradient {
+    @apply bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600;
+  }
+  
+  .stats-card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:scale-102;
+  }
+
+  .recruiter-table-row {
+    @apply hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors;
+  }
+  
+  .recruiter-badge {
+    @apply px-2 py-1 rounded-full text-sm font-medium;
+  }
+}
