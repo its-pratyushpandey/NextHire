@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { RiMicFill } from 'react-icons/ri'
 
+
 const HeroSection = () => {
     const [query, setQuery] = useState("")
     const [isListening, setIsListening] = useState(false);
