@@ -10,6 +10,7 @@ import { JOB_API_END_POINT } from '@/utils/constant';
 import { useSelector } from 'react-redux';
 import PremiumApplicationForm from './PremiumApplicationForm';
 
+
 const Job = ({ job, isSavedPage = false }) => {
     const [saving, setSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(isSavedPage);
