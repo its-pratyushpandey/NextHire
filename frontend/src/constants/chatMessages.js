@@ -6,6 +6,8 @@ export const CHAT_MESSAGES = {
         answer: "To create an effective job posting: 1) Write a clear job title 2) Include key responsibilities 3) List required and preferred qualifications 4) Describe your company culture 5) Specify salary range and benefits 6) Add keywords for better visibility",
         suggestions: ["Job post templates", "Best practices", "Optimize visibility"]
       },
+
+      
       {
         question: "What are the best practices for screening candidates?",
         answer: "Best practices include: 1) Create a structured evaluation process 2) Use standardized questions 3) Focus on both technical and soft skills 4) Check references thoroughly 5) Document your assessments 6) Use skill assessment tools",
