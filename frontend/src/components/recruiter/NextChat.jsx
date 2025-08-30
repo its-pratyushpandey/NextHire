@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { useSelector } from 'react-redux';
 
+
 // Fetch all applicant conversations for recruiter
 const fetchAllApplicantConversations = async () => {
   const res = await fetch('/api/chat/all-applicants', { credentials: 'include' });
