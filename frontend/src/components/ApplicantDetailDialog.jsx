@@ -8,6 +8,7 @@ const ApplicantDetailDialog = ({ open, setOpen, applicant }) => {
   if (!applicant) return null;
   const application = applicant.application || applicant; // fallback if structure is flat
 
+  
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-2xl">
