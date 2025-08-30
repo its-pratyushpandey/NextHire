@@ -4,6 +4,7 @@ import { Label } from './ui/label'
 import { useDispatch } from 'react-redux'
 import { setSearchedQuery } from '@/redux/jobSlice'
 
+
 const filterData = [
     {
         filterType: "Job Type",
