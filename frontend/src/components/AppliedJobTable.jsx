@@ -12,6 +12,7 @@ const statusStyles = {
     under_review: 'bg-gradient-to-r from-blue-400 to-blue-600 text-white',
 }
 
+
 const statusIcons = {
     accepted: <CheckCircle2 className="h-4 w-4 mr-1 text-white" />,
     rejected: <XCircle className="h-4 w-4 mr-1 text-white" />,
