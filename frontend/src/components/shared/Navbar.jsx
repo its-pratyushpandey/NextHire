@@ -56,6 +56,7 @@ import { toast } from 'sonner';
 import { ThemeToggle } from "../ThemeToggle";
 import { cn } from '@/lib/utils';
 
+
 const Navbar = () => {
     const { user } = useSelector(store => store.auth);
     const dispatch = useDispatch();
