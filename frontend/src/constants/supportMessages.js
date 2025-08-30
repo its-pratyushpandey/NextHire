@@ -8,6 +8,7 @@ export const SUPPORT_RESPONSES = [
       "I'm here to help! Could you provide more details?",
       "Let me look into that for you."
     ]
+    
   },
   {
     type: 'job_search',
