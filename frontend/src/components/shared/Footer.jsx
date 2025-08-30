@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 const Footer = () => {
     const currentYear = new Date().getFullYear();
 
+    
     const footerLinks = {
         jobSeekers: [
             { 
