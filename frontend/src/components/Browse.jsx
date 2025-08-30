@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setSearchedQuery } from '@/redux/jobSlice';
 import useGetAllJobs from '@/hooks/useGetAllJobs';
 import { motion, AnimatePresence } from 'framer-motion';
+
 import { 
     Search, 
     Briefcase,
