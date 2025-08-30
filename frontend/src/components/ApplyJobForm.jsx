@@ -5,6 +5,7 @@ import { APPLICATION_API_END_POINT } from '@/utils/constant'
 import { Dialog, DialogContent } from './ui/dialog'
 import { Loader2 } from 'lucide-react'
 
+
 const ApplyJobForm = ({ jobId, onClose, job }) => {
     const [loading, setLoading] = useState(false)
     const [form, setForm] = useState({
