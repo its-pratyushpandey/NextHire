@@ -26,6 +26,7 @@ const AdminJobs = () => {
         </div>
         <AdminJobsTable />
       </div>
+      
     </div>
   )
 }
