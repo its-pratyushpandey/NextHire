@@ -84,6 +84,7 @@ const AdminJobsTable = () => {
         }
 
         setFilterJobs(filtered);
+        
     };
 
     const getJobPriorityBadge = (applications = 0) => {
