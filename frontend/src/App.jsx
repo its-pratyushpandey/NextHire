@@ -116,6 +116,7 @@ const router = createBrowserRouter([
       }
     ]
   },
+  
   {
     path: '/privacy-policy',
     element: <PrivacyPolicy />,
