@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Video, X, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAIChat } from '@/contexts/AIChatProvider';
-
 const AIAssistant = () => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
