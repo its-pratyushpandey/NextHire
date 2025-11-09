@@ -9,7 +9,6 @@ import FullScreenChat from '@/components/chat/FullScreenChat';
 import { toast } from 'sonner';
 import NextChat from './NextChat';
 import ApplicantDetailDialog from '@/components/ApplicantDetailDialog';
-
 const statusStatsIcons = {
   total: User2,
   pending: Clock,
