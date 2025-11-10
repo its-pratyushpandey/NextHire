@@ -11,7 +11,6 @@ const fetchAllApplicantConversations = async () => {
   if (!res.ok) throw new Error('Failed to fetch conversations');
   return res.json();
 };
-
 const NextChat = () => {
   const { user } = useSelector(store => store.auth);
   const [conversations, setConversations] = useState([]);
