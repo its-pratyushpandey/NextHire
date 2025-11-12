@@ -10,7 +10,6 @@ const AIAssistant = () => {
   const [isVideo, setIsVideo] = useState(false);
   const recognitionRef = useRef(null);
   const { messages, addMessage, isTyping, setIsTyping } = useAIChat();
-
   // Voice recognition setup
   const startListening = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
