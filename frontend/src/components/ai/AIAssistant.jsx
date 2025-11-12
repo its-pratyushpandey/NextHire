@@ -33,7 +33,6 @@ const AIAssistant = () => {
       alert('Speech recognition not supported in this browser.');
     }
   };
-
   // AI chat handler
   const sendMessage = async () => {
     if (!input.trim()) return;
