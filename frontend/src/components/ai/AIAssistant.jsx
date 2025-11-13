@@ -59,7 +59,6 @@ const AIAssistant = () => {
     setIsVideo(true);
     // Integrate with WebRTC or a service like Twilio for real video chat
   };
-
   return (
     <>
       {/* Floating button */}
