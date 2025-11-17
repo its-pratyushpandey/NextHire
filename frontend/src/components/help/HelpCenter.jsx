@@ -25,7 +25,6 @@ import { toast } from 'sonner';
 import LiveChatBox from './LiveChatBox';
 import AIErrorBoundary from '../ai/AIErrorBoundary';
 import AIAssistant from '../ai/AIAssistant';
-
 const HelpCenter = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showChat, setShowChat] = useState(false);
