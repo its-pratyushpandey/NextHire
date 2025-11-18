@@ -1,5 +1,4 @@
 import React from 'react';
-
 export default function FilePreview({ file, onRemove }) {
   if (!file) return null;
   const isImage = file.type.startsWith('image/');
