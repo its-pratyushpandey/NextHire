@@ -31,7 +31,6 @@ const PaymentModal = ({ isOpen, setIsOpen, selectedPlan }) => {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState('pending');
     const dispatch = useDispatch();
-
     const paymentMethods = {
         upi: {
             id: 'upi',
