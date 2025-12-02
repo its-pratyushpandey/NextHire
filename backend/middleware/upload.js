@@ -1,6 +1,5 @@
 // Import multer
 import multer from 'multer';
-
 // Memory storage
 const storage = multer.memoryStorage();
 
