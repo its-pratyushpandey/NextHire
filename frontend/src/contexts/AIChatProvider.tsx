@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-
 interface AIChatContextType {
     messages: Array<any>;
     addMessage: (message: any) => void;
